@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adaptive app-icon background colors, sampled/derived from the VidDown logo -->
+    <color name="ic_launcher_bg_default">#0658C0</color>
+    <color name="ic_launcher_bg_dark">#032550</color>
+    <color name="ic_launcher_bg_light">#7EA4D3</color>
+    <color name="ic_launcher_bg_green">#06C02D</color>
+</resources>

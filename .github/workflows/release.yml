@@ -1,0 +1,55 @@
+name: Release VidDown
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+          cache: gradle
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > keystore.jks
+            printf 'signingConfig.storeFile=../keystore.jks\nsigningConfig.storePassword=%s\nsigningConfig.keyAlias=%s\nsigningConfig.keyPassword=%s\n' \
+              "$KEYSTORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > keystore.properties
+          fi
+
+      - name: Build Release APK
+        run: ./gradlew assembleGithubRelease
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "VidDown ${{ github.ref_name }}"
+          body: |
+            ## VidDown ${{ github.ref_name }}
+            by **SAIMUM HABIB** — github.com/saimum10
+          files: app/build/outputs/apk/github/release/*.apk
+          fail_on_unmatched_files: false
